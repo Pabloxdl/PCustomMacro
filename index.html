@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <style>
   :root{
     --bg-0:#060e1a;
@@ -388,10 +389,48 @@
   .dl-notes{
     font-size:0.88rem; color:var(--text-lo); line-height:1.65;
     max-width:56ch;
-    white-space:pre-line;
-    max-height:120px;
+    max-height:160px;
     overflow-y:auto;
+    padding-right:6px;
   }
+  .dl-notes h1, .dl-notes h2, .dl-notes h3{
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--text-hi);
+    font-size:0.95rem;
+    margin:12px 0 6px;
+  }
+  .dl-notes h1:first-child, .dl-notes h2:first-child, .dl-notes h3:first-child{ margin-top:0; }
+  .dl-notes p{ margin:0 0 10px; }
+  .dl-notes ul, .dl-notes ol{ margin:0 0 10px 1.2em; }
+  .dl-notes li{ margin-bottom:4px; }
+  .dl-notes code{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    background:rgba(255,255,255,0.08);
+    border:1px solid var(--glass-border);
+    padding:1px 5px;
+    border-radius:5px;
+    color:var(--accent-2);
+  }
+  .dl-notes pre{
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--glass-border);
+    border-radius:8px;
+    padding:10px 12px;
+    overflow-x:auto;
+    margin:0 0 10px;
+  }
+  .dl-notes pre code{ background:none; border:none; padding:0; }
+  .dl-notes a{ color:var(--accent-2); text-decoration:underline; text-underline-offset:2px; }
+  .dl-notes strong{ color:var(--text-hi); }
+  .dl-notes blockquote{
+    border-left:2px solid var(--accent-1);
+    padding-left:10px;
+    color:var(--text-faint);
+    margin:0 0 10px;
+  }
+  .dl-notes::-webkit-scrollbar{ width:6px; }
+  .dl-notes::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:6px; }
   .dl-right{ display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
   .dl-status{ font-size:0.78rem; color:var(--text-faint); }
   .asset-list{ display:flex; flex-direction:column; gap:8px; width:260px; }
@@ -483,7 +522,7 @@
         <h1>Automation, built<br> block by <em>block</em>.</h1>
         <p class="lead">PCustomMacro is a visual macro builder. Snap blocks together into a chain, and the chain does the work — from a single keystroke to advanced, multi-step automations with conditions, loops, and dozens of functions.</p>
         <div class="hero-cta">
-          <a class="btn btn-primary" id="hero-download" href="https://github.com/Pabloxdl/PCustomMacro/releases/latest" target="_blank" rel="noopener">
+          <a class="btn btn-primary" id="hero-download" href="#download">
             ⬇ Download latest release
           </a>
           <a class="btn btn-ghost" href="#chain">See how it works</a>
@@ -625,7 +664,7 @@
         <div class="dl-left">
           <span class="dl-version" id="dl-version-tag">Loading release…</span>
           <h3 id="dl-title">Fetching latest release from GitHub…</h3>
-          <p class="dl-notes" id="dl-notes"></p>
+          <div class="dl-notes" id="dl-notes"></div>
         </div>
         <div class="dl-right">
           <span class="dl-status" id="dl-status">Checking github.com/Pabloxdl/PCustomMacro…</span>
@@ -711,8 +750,7 @@
       const published = formatDate(publishedRaw);
       const assets = Array.isArray(data.assets) ? data.assets : [];
 
-      // Hero
-      heroBtn.href = data.html_url || `https://github.com/${REPO}/releases/latest`;
+      // Hero — always jumps to the on-page download section, never off-site
       statVersion.textContent = version;
       statDate.textContent = published || '—';
 
@@ -722,7 +760,13 @@
       dlStatus.textContent = published ? `Published ${published}` : 'Published recently';
 
       const notes = (data.body || '').trim();
-      dlNotes.textContent = notes ? notes : 'No release notes were provided for this version.';
+      if(!notes){
+        dlNotes.textContent = 'No release notes were provided for this version.';
+      } else if(window.marked){
+        dlNotes.innerHTML = marked.parse(notes);
+      } else {
+        dlNotes.textContent = notes;
+      }
 
       if(assets.length){
         assetList.innerHTML = assets.map(a => `
